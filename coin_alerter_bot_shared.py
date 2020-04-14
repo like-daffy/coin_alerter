@@ -31,8 +31,8 @@ latest_before_value = [] # 바이낸스 코인 중 마지막으로 발생한 알
 
 
 # 텔레그램 chat id 정보를 저장할 변수 선언
-telgm_list = [] #텔레그램 BTC 알림 채팅방 chat id 리스트
-telgm_list_alt = [] #텔레그램 알트 코인 알림 채팅방 chat id 리스트
+telgm_list = []  # 텔레그램 첫번째 채팅방 chat id 리스트
+telgm_list_alt = []  # 텔레그램 두번째 채팅방 chat id 리스트
 
 # 슬랙에 메시지를 보낼 수 있게 token을 준비
 slack_token = '<토큰>'
@@ -43,7 +43,7 @@ slack.chat.post_message(slack_channel, "BTC 변동 알림봇을 시작합니다.
 slack.chat.post_message(slack_channel_alt, "알트 코인 변동 알림봇을 시작합니다.")
 
 # 텔레그램의 chat id를 추가하는 telegram_chat_id_add 함수 선언
-def telegram_chat_id_add(updates):
+def telegram_chat_id_add(updates, telgm_default_list, telgm_extra):
     telgm_list = []
     for telgm_i in updates:
         try:
@@ -61,13 +61,30 @@ telgm_list = telegram_chat_id_add(telgm_updates)
 
 # 텔레그램 업데이트 후 chat id를 telgm_list_alt 두번째 채팅방에 추가
 telgm_token_alt = '<텔레그램 토큰>'
-telgm_bot_alt = telegram.Bot(token = telgm_token_alt)
+telgm_bot_alt = telegram.Bot(token=telgm_token_alt)
 telgm_updates_alt = telgm_bot_alt.get_updates()
-telgm_list_alt = telegram_chat_id_add(telgm_updates_alt)
+telgm_list = telegram_chat_id_add(telgm_updates, telgm_default_list, [])
 
 # 바이낸스 api 호출
 binance_url = '<바이낸스 api URL>'
 response = requests.get(binance_url)
+
+# 알림봇 시작 알림
+start_message_btc = "BTC 변동 알림봇을 재기동 합니다."
+start_message_alt = "알트 코인 변동 알림봇을 재기동 합니다."
+slack.chat.post_message(slack_channel, start_message_btc)
+slack.chat.post_message(slack_channel_alt, start_message_alt)
+try:
+    for telgm_i in telgm_list:
+        telgm_bot.sendMessage(chat_id=telgm_i, text=start_message_btc)
+except:
+    pass
+
+try:
+    for telgm_i in telgm_list_alt:
+        telgm_bot_alt.sendMessage(chat_id=telgm_i, text=start_message_alt)
+except:
+    pass
 
 # param의 첫째값 (0번째 값)은 BTC-USDT로 입력
 param = [{'symbol': 'BTCUSDT'}, {'symbol': 'ETHUSDT'}, {'symbol': 'ETCUSDT'}, {'symbol': 'LTCUSDT'},
@@ -97,9 +114,10 @@ for coin_no in range(0, len(param)):
 for coin_no in range(0, len(param)):
     for i in range(0, 60):
         history_binance[coin_no].append(usdt_conv[coin_no])
+
 # 코인 파라매터 값을 함수로 값 전달
 def call_value_param():
-    return param, param_kucoin
+    return param
 
 # 메시지를 일괄로 보내는 함수
 def message_center(alert_message, coin_name):
@@ -175,21 +193,17 @@ def check_latest_percent(latest_value, coin_no, alert_on):
 
 # 스캐쥴러 함수
 def job():
-    global latest_before_value, latest_before_value_kucoin
-    global counter_min, counter_min_kucoin
+    global latest_before_value
+    global counter_min
     global _30min_ago, _15min_ago, _5min_ago
-    global _30min_ago_kucoin, _15min_ago_kucoin, _5min_ago_kucoin
     global percent_30min, percent_15min, percent_5min
-    global percent_30min_kucoin, percent_15min_kucoin, percent_5min_kucoin
-    global alert_on, alert_on_kucoin
-    global history_binance, history_kucoin
-    param, param_kucoin = call_value_param()
+    global alert_on
+    global history_binance
+    param = call_value_param()
 
     # 알람을 False 로 초기화
     for i in range(0, len(param)):
         alert_on[i] = False
-    for i in range(0, len(param_kucoin)):
-        alert_on_kucoin[i] = False
 
     # 바이낸스 코인마다 가장 오래된 값은 버리고, 업데이트된 값을 입력
     for coin_no in range(0, len(param)):
