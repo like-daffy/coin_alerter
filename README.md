@@ -1,3 +1,14 @@
+In Mobile, You can select "View code > coin_alerter_bot.py" and then view the code.<be>
+# Alarm Bot for Bitcoin & Altcoin
+Connected Telegram and Slack<be>
+The bot calculates the change rate from the current price by calling via the Binance API. If the change rate exceeds a fixed rate, an alarm is triggered.<be>
+You can use it after making Telegram and Slack Bot and updating this source.<br>
+<b>Additional Mandatory Infomation</b>
+- Slack Bot Token<br>
+- Slack Channel ID<br>
+- Telegram Bot Token<br>
+- Binance API URL (https://api.binance.com)<br>
+<br>
 모바일에서 접속 시 View code > coin_alerter_bot.py 선택하시면 코드를 보실 수 있습니다.
 # 비트코인 및 알트 코인 알람봇입니다.
 텔레그램, 슬랙 연동<br>
